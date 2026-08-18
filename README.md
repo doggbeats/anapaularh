@@ -25,3 +25,5 @@ A plataforma permite que empresas divulguem suas vagas e que candidatos encontre
 * Banco de dados e armazenamento de arquivos integrado ao sistema.
 
 O projeto foi desenvolvido com foco em **usabilidade, responsividade, organização das informações e facilidade de gestão**, proporcionando uma experiência simples tanto para recrutadores quanto para candidatos.
+
+Link do site: https://anapaularh.vercel.app/
