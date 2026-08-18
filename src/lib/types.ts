@@ -5,6 +5,8 @@ export type TipoVaga =
   | "Temporário"
   | "Freelance";
 
+export type ModalidadeVaga = "Presencial" | "Remoto" | "Híbrido";
+
 export type StatusCandidatura =
   | "nova"
   | "em_analise"
@@ -17,6 +19,7 @@ export interface Vaga {
   empresa: string;
   categoria: string;
   tipo: TipoVaga;
+  modalidade: ModalidadeVaga;
   local: string;
   salario: string;
   descricao: string;
@@ -32,6 +35,9 @@ export interface Candidatura {
   whatsapp: string;
   email: string;
   cidade: string;
+  experiencia: string;
+  formacao: string;
+  linkedin: string;
   curriculoNome: string;
   curriculoPath: string;
   status: StatusCandidatura;

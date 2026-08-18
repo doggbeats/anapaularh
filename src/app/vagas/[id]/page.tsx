@@ -10,7 +10,7 @@ export async function generateMetadata({
   params,
 }: PageProps<"/vagas/[id]">): Promise<Metadata> {
   const { id } = await params;
-  const vaga = readDB().vagas.find((v) => v.id === id && v.ativa);
+  const vaga = (await readDB()).vagas.find((v) => v.id === id && v.ativa);
   if (!vaga) return { title: "Vaga não encontrada" };
   return {
     title: `${vaga.titulo} — ${vaga.empresa}`,
@@ -26,7 +26,7 @@ export default async function VagaDetalhePage({
   const query = await searchParams;
   const candidaturaSucesso = query.candidatura === "sucesso";
 
-  const vaga = readDB().vagas.find((v) => v.id === id && v.ativa);
+  const vaga = (await readDB()).vagas.find((v) => v.id === id && v.ativa);
   if (!vaga) notFound();
 
   const requisitos = vaga.requisitos
@@ -57,6 +57,9 @@ export default async function VagaDetalhePage({
           </span>
           <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-700">
             {vaga.tipo}
+          </span>
+          <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-700">
+            {vaga.modalidade}
           </span>
           {!vaga.ativa && (
             <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-700">

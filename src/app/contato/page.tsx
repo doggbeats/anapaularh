@@ -17,36 +17,24 @@ export default function ContatoPage() {
         nossa equipe.
       </p>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-3">
+      <div className="mt-10 grid gap-4 sm:grid-cols-2">
         <a
-          href="mailto:contato@aprh.com.br"
+          href="mailto:recrutamento.ap01@gmail.com"
           className="rounded-xl border border-zinc-200 bg-white p-6 text-center transition-colors hover:border-zinc-900"
         >
           <p className="text-2xl">✉️</p>
           <p className="mt-3 font-semibold text-zinc-900">E-mail</p>
-          <p className="mt-1 text-sm text-zinc-500">contato@aprh.com.br</p>
+          <p className="mt-1 text-sm text-zinc-500">recrutamento.ap01@gmail.com</p>
         </a>
         <a
-          href="https://wa.me/5511999999999"
+          href="https://wa.me/5561982473176"
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-xl border border-zinc-200 bg-white p-6 text-center transition-colors hover:border-zinc-900"
         >
           <p className="text-2xl">💬</p>
           <p className="mt-3 font-semibold text-zinc-900">WhatsApp</p>
-          <p className="mt-1 text-sm text-zinc-500">(11) 99999-9999</p>
-        </a>
-        <a
-          href="https://maps.google.com/?q=Av.+Paulista+1000"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-xl border border-zinc-200 bg-white p-6 text-center transition-colors hover:border-zinc-900"
-        >
-          <p className="text-2xl">📍</p>
-          <p className="mt-3 font-semibold text-zinc-900">Endereço</p>
-          <p className="mt-1 text-sm text-zinc-500">
-            Av. Paulista, 1000 — São Paulo, SP
-          </p>
+          <p className="mt-1 text-sm text-zinc-500">(61) 98247-3176</p>
         </a>
       </div>
 

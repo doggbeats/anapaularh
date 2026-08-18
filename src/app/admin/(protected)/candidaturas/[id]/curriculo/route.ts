@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { getDownloadUrl } from "@vercel/blob";
 import { isAuthenticated } from "@/lib/auth";
 import { getCandidatura, UPLOADS_DIR } from "@/lib/db";
 
@@ -20,10 +21,37 @@ export async function GET(
   }
 
   const { id } = await params;
-  const candidatura = getCandidatura(id);
+  const candidatura = await getCandidatura(id);
 
   if (!candidatura?.curriculoPath) {
     return new Response("Currículo não encontrado", { status: 404 });
+  }
+
+  const ext = path.extname(candidatura.curriculoNome || "").toLowerCase();
+  const contentType = CONTENT_TYPES[ext] ?? "application/octet-stream";
+  const fileName =
+    candidatura.curriculoNome || `curriculo_${candidatura.nome}${ext}`;
+
+  const disposition = `attachment; filename="${fileName}"`;
+
+  if (candidatura.curriculoPath.startsWith("https://")) {
+    try {
+      const res = await fetch(getDownloadUrl(candidatura.curriculoPath));
+      if (!res.ok) {
+        return new Response("Currículo não encontrado", { status: 404 });
+      }
+      const body = await res.arrayBuffer();
+      return new Response(new Uint8Array(body), {
+        status: 200,
+        headers: {
+          "Content-Type": res.headers.get("content-type") ?? contentType,
+          "Content-Disposition": disposition,
+          "Content-Length": String(body.byteLength),
+        },
+      });
+    } catch {
+      return new Response("Currículo não encontrado", { status: 404 });
+    }
   }
 
   const filePath = path.isAbsolute(candidatura.curriculoPath)
@@ -37,16 +65,11 @@ export async function GET(
     return new Response("Currículo não encontrado", { status: 404 });
   }
 
-  const ext = path.extname(candidatura.curriculoNome || "").toLowerCase();
-  const contentType = CONTENT_TYPES[ext] ?? "application/octet-stream";
-  const fileName =
-    candidatura.curriculoNome || `curriculo_${candidatura.nome}${ext}`;
-
   return new Response(new Uint8Array(file), {
     status: 200,
     headers: {
       "Content-Type": contentType,
-      "Content-Disposition": `attachment; filename="${fileName}"`,
+      "Content-Disposition": disposition,
       "Content-Length": String(file.length),
     },
   });

@@ -1,11 +1,10 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { randomBytes, scryptSync } from "node:crypto";
+import { loadState, saveState } from "./storage";
 import type { DB, Vaga } from "./types";
 
 export const DATA_DIR = path.join(process.cwd(), "data");
 export const UPLOADS_DIR = path.join(DATA_DIR, "uploads");
-const DB_PATH = path.join(DATA_DIR, "db.json");
 
 const ADMIN_USERNAME = "admin";
 const ADMIN_PASSWORD = "4nn4.2026";
@@ -24,6 +23,7 @@ function seedDB(): DB {
       empresa: "TechNova",
       categoria: "Tecnologia",
       tipo: "CLT",
+      modalidade: "Remoto",
       local: "Remoto",
       salario: "R$ 6.000,00",
       descricao:
@@ -39,6 +39,7 @@ function seedDB(): DB {
       empresa: "VendaMais",
       categoria: "Vendas",
       tipo: "PJ",
+      modalidade: "Presencial",
       local: "São Paulo - SP",
       salario: "Comissão + fixo",
       descricao:
@@ -54,6 +55,7 @@ function seedDB(): DB {
       empresa: "Cresça Agência",
       categoria: "Marketing",
       tipo: "CLT",
+      modalidade: "Presencial",
       local: "Belo Horizonte - MG",
       salario: "R$ 4.500,00",
       descricao:
@@ -69,6 +71,7 @@ function seedDB(): DB {
       empresa: "Suporte+",
       categoria: "Atendimento",
       tipo: "Temporário",
+      modalidade: "Presencial",
       local: "Rio de Janeiro - RJ",
       salario: "R$ 2.200,00",
       descricao:
@@ -84,6 +87,7 @@ function seedDB(): DB {
       empresa: "OrganizaTudo",
       categoria: "Administrativo",
       tipo: "Estágio",
+      modalidade: "Presencial",
       local: "Curitiba - PR",
       salario: "R$ 1.400,00 + benefícios",
       descricao:
@@ -99,6 +103,7 @@ function seedDB(): DB {
       empresa: "TransporteJá",
       categoria: "Operações",
       tipo: "Freelance",
+      modalidade: "Híbrido",
       local: "Porto Alegre - RS",
       salario: "Variável",
       descricao:
@@ -122,26 +127,24 @@ function seedDB(): DB {
   };
 }
 
-export function readDB(): DB {
-  if (!existsSync(DB_PATH)) {
-    mkdirSync(DATA_DIR, { recursive: true });
+export async function readDB(): Promise<DB> {
+  const raw = await loadState();
+  if (raw === null) {
     const db = seedDB();
-    writeDB(db);
+    await saveState(JSON.stringify(db));
     return db;
   }
-  const raw = readFileSync(DB_PATH, "utf-8");
   return JSON.parse(raw) as DB;
 }
 
-export function writeDB(db: DB): void {
-  mkdirSync(DATA_DIR, { recursive: true });
-  writeFileSync(DB_PATH, JSON.stringify(db, null, 2), "utf-8");
+export async function writeDB(db: DB): Promise<void> {
+  await saveState(JSON.stringify(db));
 }
 
-export function getVaga(id: string): Vaga | undefined {
-  return readDB().vagas.find((v) => v.id === id);
+export async function getVaga(id: string): Promise<Vaga | undefined> {
+  return (await readDB()).vagas.find((v) => v.id === id);
 }
 
-export function getCandidatura(id: string) {
-  return readDB().candidaturas.find((c) => c.id === id);
+export async function getCandidatura(id: string) {
+  return (await readDB()).candidaturas.find((c) => c.id === id);
 }

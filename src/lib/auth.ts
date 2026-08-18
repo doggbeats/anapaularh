@@ -41,13 +41,13 @@ export async function isAuthenticated(): Promise<boolean> {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return false;
 
-  const db = readDB();
+  const db = await readDB();
   const session = db.sessions[token];
   if (!session) return false;
 
   if (session.expiresAt < Date.now()) {
     delete db.sessions[token];
-    writeDB(db);
+    await writeDB(db);
     return false;
   }
   return true;

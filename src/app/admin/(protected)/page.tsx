@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   title: "Painel administrativo",
 };
 
-export default function AdminDashboardPage() {
-  const db = readDB();
+export default async function AdminDashboardPage() {
+  const db = await readDB();
   const vagas = [...db.vagas].sort((a, b) => b.createdAt - a.createdAt);
   const candidaturas = db.candidaturas;
 

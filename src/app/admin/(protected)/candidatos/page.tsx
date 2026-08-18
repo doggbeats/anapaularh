@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { readDB } from "@/lib/db";
+import { excluirCandidatura } from "@/lib/actions";
 import { formatDate } from "@/lib/format";
 import { STATUS_LABELS } from "@/lib/types";
 import StatusForm from "@/components/StatusForm";
+import ConfirmForm from "@/components/ConfirmForm";
 
 export const metadata: Metadata = {
   title: "Candidatos",
 };
 
-export default function CandidatosPage() {
-  const db = readDB();
+export default async function CandidatosPage() {
+  const db = await readDB();
   const candidaturas = [...db.candidaturas].sort(
     (a, b) => b.createdAt - a.createdAt,
   );
@@ -32,9 +34,11 @@ export default function CandidatosPage() {
                 <th className="px-4 py-3 font-medium">Candidato</th>
                 <th className="px-4 py-3 font-medium">Vaga</th>
                 <th className="px-4 py-3 font-medium">Contato</th>
+                <th className="px-4 py-3 font-medium">Perfil</th>
                 <th className="px-4 py-3 font-medium">Currículo</th>
                 <th className="px-4 py-3 font-medium">Recebida em</th>
                 <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100">
@@ -62,6 +66,20 @@ export default function CandidatosPage() {
                       <p>{c.whatsapp}</p>
                       <p className="text-xs text-zinc-400">{c.email}</p>
                     </td>
+                    <td className="px-4 py-3 text-zinc-600">
+                      <p className="text-xs">{c.experiencia || "—"}</p>
+                      <p className="text-xs">{c.formacao || "—"}</p>
+                      {c.linkedin && (
+                        <a
+                          href={c.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-zinc-500 hover:underline"
+                        >
+                          LinkedIn
+                        </a>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       {c.curriculoPath ? (
                         <a
@@ -82,6 +100,21 @@ export default function CandidatosPage() {
                       <p className="mt-1 text-xs text-zinc-400">
                         {STATUS_LABELS[c.status]}
                       </p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <ConfirmForm
+                        action={excluirCandidatura}
+                        confirmMessage={`Excluir a candidatura de "${c.nome}"?`}
+                      >
+                        <input type="hidden" name="id" value={c.id} />
+                        <input type="hidden" name="vagaId" value={c.vagaId} />
+                        <button
+                          type="submit"
+                          className="rounded-md border border-zinc-200 px-2.5 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+                        >
+                          Excluir
+                        </button>
+                      </ConfirmForm>
                     </td>
                   </tr>
                 );

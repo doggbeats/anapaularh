@@ -10,7 +10,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const vaga = getVaga(id);
+  const vaga = await getVaga(id);
   return { title: vaga ? `Editar — ${vaga.titulo}` : "Editar vaga" };
 }
 
@@ -20,7 +20,7 @@ export default async function EditarVagaPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const vaga = getVaga(id);
+  const vaga = await getVaga(id);
   if (!vaga) notFound();
 
   const action = atualizarVaga.bind(null, vaga.id);

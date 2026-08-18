@@ -10,7 +10,7 @@ export async function generateMetadata({
   params,
 }: PageProps<"/vagas/[id]/candidatar">): Promise<Metadata> {
   const { id } = await params;
-  const vaga = readDB().vagas.find((v) => v.id === id && v.ativa);
+  const vaga = (await readDB()).vagas.find((v) => v.id === id && v.ativa);
   return {
     title: vaga ? `Candidatar-se — ${vaga.titulo}` : "Candidatar-se",
   };
@@ -20,7 +20,7 @@ export default async function CandidatarPage({
   params,
 }: PageProps<"/vagas/[id]/candidatar">) {
   const { id } = await params;
-  const vaga = readDB().vagas.find((v) => v.id === id && v.ativa);
+  const vaga = (await readDB()).vagas.find((v) => v.id === id && v.ativa);
   if (!vaga) notFound();
 
   return (

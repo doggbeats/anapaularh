@@ -74,15 +74,56 @@ export default function CandidaturaForm({ vagaId }: { vagaId: string }) {
         </div>
       </div>
 
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="experiencia" className="mb-1 block text-sm font-medium text-zinc-700">
+            Experiência profissional
+          </label>
+          <input
+            id="experiencia"
+            name="experiencia"
+            type="text"
+            className={inputClass}
+            placeholder="Ex.: 3 anos em desenvolvimento front-end"
+          />
+        </div>
+        <div>
+          <label htmlFor="formacao" className="mb-1 block text-sm font-medium text-zinc-700">
+            Formação acadêmica
+          </label>
+          <input
+            id="formacao"
+            name="formacao"
+            type="text"
+            className={inputClass}
+            placeholder="Ex.: Superior em Administração"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="linkedin" className="mb-1 block text-sm font-medium text-zinc-700">
+          LinkedIn
+        </label>
+        <input
+          id="linkedin"
+          name="linkedin"
+          type="url"
+          className={inputClass}
+          placeholder="https://linkedin.com/in/seu-perfil"
+        />
+      </div>
+
       <div>
         <label htmlFor="curriculo" className="mb-1 block text-sm font-medium text-zinc-700">
-          Currículo (PDF, DOC ou DOCX — máx. 5 MB)
+          Currículo (PDF, DOC ou DOCX — máx. 5 MB) *
         </label>
         <input
           id="curriculo"
           name="curriculo"
           type="file"
           accept=".pdf,.doc,.docx,.txt"
+          required
           className={inputClass}
         />
       </div>

@@ -1,10 +1,11 @@
 "use client";
 
 import { useActionState } from "react";
-import { CATEGORIAS, type TipoVaga, type Vaga } from "@/lib/types";
+import { CATEGORIAS, type ModalidadeVaga, type TipoVaga, type Vaga } from "@/lib/types";
 import type { ActionState } from "@/lib/actions";
 
 const TIPOS: TipoVaga[] = ["CLT", "Estágio", "PJ", "Temporário", "Freelance"];
+const MODALIDADES: ModalidadeVaga[] = ["Presencial", "Remoto", "Híbrido"];
 
 const inputClass =
   "w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 outline-none transition-colors focus:border-zinc-900 focus:ring-2 focus:ring-zinc-200";
@@ -89,6 +90,24 @@ export default function VagaForm({
             {TIPOS.map((t) => (
               <option key={t} value={t}>
                 {t}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="modalidade" className="mb-1 block text-sm font-medium text-zinc-700">
+            Modalidade *
+          </label>
+          <select
+            id="modalidade"
+            name="modalidade"
+            required
+            defaultValue={vaga?.modalidade ?? "Presencial"}
+            className={inputClass}
+          >
+            {MODALIDADES.map((m) => (
+              <option key={m} value={m}>
+                {m}
               </option>
             ))}
           </select>

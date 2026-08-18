@@ -16,6 +16,7 @@ import {
   SESSION_TTL_MS,
 } from "./auth";
 import type {
+  ModalidadeVaga,
   StatusCandidatura,
   TipoVaga,
   Vaga,
@@ -33,7 +34,7 @@ export async function login(
   const username = String(formData.get("username") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
-  const db = readDB();
+  const db = await readDB();
   const admin = db.admin;
 
   if (
@@ -48,19 +49,19 @@ export async function login(
     createdAt: Date.now(),
     expiresAt: Date.now() + SESSION_TTL_MS,
   };
-  writeDB(db);
+  await writeDB(db);
   await setSessionCookie(token);
 
   redirect("/admin");
 }
 
 export async function logout(): Promise<void> {
-  const db = readDB();
+  const db = await readDB();
   const cookieStore = await cookies();
   const token = cookieStore.get("recruta_session")?.value;
   if (token) {
     delete db.sessions[token];
-    writeDB(db);
+    await writeDB(db);
   }
   await clearSessionCookie();
   redirect("/admin/login");
@@ -71,6 +72,7 @@ function validateVaga(formData: FormData): Omit<Vaga, "id" | "createdAt"> {
   const empresa = String(formData.get("empresa") ?? "").trim();
   const categoria = String(formData.get("categoria") ?? "").trim();
   const tipo = String(formData.get("tipo") ?? "") as TipoVaga;
+  const modalidade = String(formData.get("modalidade") ?? "") as ModalidadeVaga;
   const local = String(formData.get("local") ?? "").trim();
   const salario = String(formData.get("salario") ?? "").trim();
   const descricao = String(formData.get("descricao") ?? "").trim();
@@ -82,6 +84,7 @@ function validateVaga(formData: FormData): Omit<Vaga, "id" | "createdAt"> {
     !empresa ||
     !categoria ||
     !tipo ||
+    !modalidade ||
     !local ||
     !descricao ||
     !requisitos
@@ -94,6 +97,7 @@ function validateVaga(formData: FormData): Omit<Vaga, "id" | "createdAt"> {
     empresa,
     categoria,
     tipo,
+    modalidade,
     local,
     salario,
     descricao,
@@ -112,9 +116,9 @@ export async function criarVaga(
 
   try {
     const data = validateVaga(formData);
-    const db = readDB();
+    const db = await readDB();
     db.vagas.push({ ...data, id: randomBytes(8).toString("hex"), createdAt: Date.now() });
-    writeDB(db);
+    await writeDB(db);
     revalidatePath("/");
     revalidatePath("/vagas");
     revalidatePath("/admin");
@@ -136,13 +140,13 @@ export async function atualizarVaga(
 
   try {
     const data = validateVaga(formData);
-    const db = readDB();
+    const db = await readDB();
     const index = db.vagas.findIndex((v) => v.id === id);
     if (index === -1) {
       return { error: "Vaga não encontrada." };
     }
     db.vagas[index] = { ...data, id, createdAt: db.vagas[index].createdAt };
-    writeDB(db);
+    await writeDB(db);
     revalidatePath("/");
     revalidatePath("/vagas");
     revalidatePath("/admin");
@@ -160,11 +164,11 @@ export async function excluirVaga(formData: FormData): Promise<void> {
     return;
   }
   const id = String(formData.get("id") ?? "");
-  const db = readDB();
+  const db = await readDB();
   const candidaturas = db.candidaturas.filter((c) => c.vagaId === id);
   db.vagas = db.vagas.filter((v) => v.id !== id);
   db.candidaturas = db.candidaturas.filter((c) => c.vagaId !== id);
-  writeDB(db);
+  await writeDB(db);
 
   for (const c of candidaturas) {
     if (c.curriculoPath) {
@@ -182,8 +186,51 @@ export async function excluirVaga(formData: FormData): Promise<void> {
   redirect("/admin");
 }
 
+export async function excluirCandidatura(formData: FormData): Promise<void> {
+  if (!(await isAuthenticated())) {
+    return;
+  }
+  const id = String(formData.get("id") ?? "");
+  const vagaId = String(formData.get("vagaId") ?? "");
+  const db = await readDB();
+  const candidatura = db.candidaturas.find((c) => c.id === id);
+
+  if (candidatura?.curriculoPath) {
+    try {
+      unlinkSync(candidatura.curriculoPath);
+    } catch {
+      // arquivo já removido
+    }
+  }
+
+  db.candidaturas = db.candidaturas.filter((c) => c.id !== id);
+  await writeDB(db);
+
+  revalidatePath("/admin");
+  if (vagaId) {
+    revalidatePath(`/admin/vagas/${vagaId}`);
+  }
+  redirect(vagaId ? `/admin/vagas/${vagaId}` : "/admin");
+}
+
 function sanitizeFileName(name: string): string {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-80);
+}
+
+async function storeCurriculo(
+  file: File,
+  candidaturaId: string,
+): Promise<{ curriculoNome: string; curriculoPath: string }> {
+  const curriculoNome = sanitizeFileName(file.name);
+  const storedName = `${candidaturaId}_${curriculoNome}`;
+  if (!existsSync(UPLOADS_DIR)) {
+    mkdirSync(UPLOADS_DIR, { recursive: true });
+  }
+  writeFileSync(
+    path.join(UPLOADS_DIR, storedName),
+    Buffer.from(await file.arrayBuffer()),
+  );
+  return { curriculoNome, curriculoPath: path.join(UPLOADS_DIR, storedName) };
 }
 
 export async function candidatar(
@@ -195,13 +242,16 @@ export async function candidatar(
   const whatsapp = String(formData.get("whatsapp") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const cidade = String(formData.get("cidade") ?? "").trim();
+  const experiencia = String(formData.get("experiencia") ?? "").trim();
+  const formacao = String(formData.get("formacao") ?? "").trim();
+  const linkedin = String(formData.get("linkedin") ?? "").trim();
   const curriculo = formData.get("curriculo");
 
   if (!vagaId || !nome || !whatsapp || !email || !cidade) {
     return { error: "Preencha todos os campos obrigatórios." };
   }
 
-  const db = readDB();
+  const db = await readDB();
   const vaga = db.vagas.find((v) => v.id === vagaId);
   if (!vaga || !vaga.ativa) {
     return { error: "Esta vaga não está mais disponível." };
@@ -209,6 +259,10 @@ export async function candidatar(
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { error: "Informe um e-mail válido." };
+  }
+
+  if (!(curriculo instanceof File) || curriculo.size === 0) {
+    return { error: "Anexe seu currículo para enviar a candidatura." };
   }
 
   const candidaturaId = randomBytes(8).toString("hex");
@@ -227,13 +281,9 @@ export async function candidatar(
         error: "Formato de currículo inválido. Use PDF, DOC, DOCX ou TXT.",
       };
     }
-    curriculoNome = sanitizeFileName(curriculo.name);
-    const storedName = `${candidaturaId}_${curriculoNome}`;
-    if (!existsSync(UPLOADS_DIR)) {
-      mkdirSync(UPLOADS_DIR, { recursive: true });
-    }
-    writeFileSync(path.join(UPLOADS_DIR, storedName), Buffer.from(await curriculo.arrayBuffer()));
-    curriculoPath = path.join(UPLOADS_DIR, storedName);
+    const stored = await storeCurriculo(curriculo, candidaturaId);
+    curriculoNome = stored.curriculoNome;
+    curriculoPath = stored.curriculoPath;
   }
 
   db.candidaturas.push({
@@ -243,12 +293,15 @@ export async function candidatar(
     whatsapp,
     email,
     cidade,
+    experiencia,
+    formacao,
+    linkedin,
     curriculoNome,
     curriculoPath,
     status: "nova",
     createdAt: Date.now(),
   });
-  writeDB(db);
+  await writeDB(db);
 
   revalidatePath("/admin");
   revalidatePath(`/admin/vagas/${vagaId}`);
@@ -269,12 +322,12 @@ export async function atualizarStatusCandidatura(
     return;
   }
 
-  const db = readDB();
+  const db = await readDB();
   const candidatura = db.candidaturas.find((c) => c.id === id);
   if (!candidatura) return;
 
   candidatura.status = status;
-  writeDB(db);
+  await writeDB(db);
   revalidatePath("/admin");
   revalidatePath(`/admin/vagas/${candidatura.vagaId}`);
   revalidatePath("/admin/candidatos");

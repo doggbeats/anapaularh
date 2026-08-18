@@ -16,3 +16,17 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+:root {
+  --a11y-scale: 1;
+}
+
+html {
+  font-size: calc(100% * var(--a11y-scale, 1));
+}
+
+.a11y-reading {
+  outline: 3px solid #facc15 !important;
+  outline-offset: 2px;
+  background-color: rgba(250, 204, 21, 0.25) !important;
+}

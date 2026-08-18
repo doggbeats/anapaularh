@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { readDB, getVaga } from "@/lib/db";
-import { excluirVaga } from "@/lib/actions";
+import { excluirVaga, excluirCandidatura } from "@/lib/actions";
 import { formatDate, relativeTime } from "@/lib/format";
 import { STATUS_LABELS } from "@/lib/types";
 import StatusForm from "@/components/StatusForm";
@@ -14,7 +14,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const vaga = getVaga(id);
+  const vaga = await getVaga(id);
   return { title: vaga ? vaga.titulo : "Vaga" };
 }
 
@@ -24,10 +24,10 @@ export default async function AdminVagaPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const vaga = getVaga(id);
+  const vaga = await getVaga(id);
   if (!vaga) notFound();
 
-  const db = readDB();
+  const db = await readDB();
   const candidaturas = db.candidaturas
     .filter((c) => c.vagaId === vaga.id)
     .sort((a, b) => b.createdAt - a.createdAt);
@@ -105,6 +105,21 @@ export default async function AdminVagaPage({
                       <p>💬 {c.whatsapp}</p>
                       <p>✉️ {c.email}</p>
                       <p>📍 {c.cidade}</p>
+                      {c.experiencia && <p>💼 {c.experiencia}</p>}
+                      {c.formacao && <p>🎓 {c.formacao}</p>}
+                      {c.linkedin && (
+                        <p>
+                          🔗{" "}
+                          <a
+                            href={c.linkedin}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-zinc-500 hover:underline"
+                          >
+                            LinkedIn
+                          </a>
+                        </p>
+                      )}
                       <p className="text-xs text-zinc-400">
                         Recebida em {formatDate(c.createdAt)}
                       </p>
@@ -118,6 +133,7 @@ export default async function AdminVagaPage({
                   </div>
                 </div>
                 <div className="mt-3 border-t border-zinc-100 pt-3">
+                  <div className="flex items-center justify-between">
                   {c.curriculoPath ? (
                     <a
                       href={`/admin/candidaturas/${c.id}/curriculo`}
@@ -131,6 +147,20 @@ export default async function AdminVagaPage({
                       Sem currículo anexado
                     </span>
                   )}
+                    <ConfirmForm
+                      action={excluirCandidatura}
+                      confirmMessage={`Excluir a candidatura de "${c.nome}"?`}
+                    >
+                      <input type="hidden" name="id" value={c.id} />
+                      <input type="hidden" name="vagaId" value={vaga.id} />
+                      <button
+                        type="submit"
+                        className="rounded-md border border-zinc-200 px-2.5 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+                      >
+                        Excluir
+                      </button>
+                    </ConfirmForm>
+                  </div>
                 </div>
               </div>
             ))}

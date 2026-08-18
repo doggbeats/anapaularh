@@ -18,7 +18,7 @@ export default async function VagasPage({
   const categoria =
     typeof params.categoria === "string" ? params.categoria : "";
 
-  const db = readDB();
+  const db = await readDB();
   const vagas = db.vagas
     .filter((v) => v.ativa)
     .filter((v) => {

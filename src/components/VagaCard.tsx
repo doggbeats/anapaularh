@@ -25,6 +25,10 @@ export default function VagaCard({ vaga }: { vaga: Vaga }) {
           <span>💼</span>
           {vaga.tipo}
         </li>
+        <li className="flex items-center gap-1.5">
+          <span>🏢</span>
+          {vaga.modalidade}
+        </li>
         {vaga.salario && (
           <li className="flex items-center gap-1.5">
             <span>💰</span>

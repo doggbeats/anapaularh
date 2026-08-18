@@ -1,12 +1,13 @@
 import Link from "next/link";
+import Image from "next/image";
 import { readDB } from "@/lib/db";
 import { CATEGORIAS } from "@/lib/types";
 import VagaCard from "@/components/VagaCard";
 
 export const dynamic = "force-dynamic";
 
-export default function Home() {
-  const db = readDB();
+export default async function Home() {
+  const db = await readDB();
   const vagasAtivas = db.vagas
     .filter((v) => v.ativa)
     .sort((a, b) => b.createdAt - a.createdAt);
@@ -19,24 +20,35 @@ export default function Home() {
         <div className="pointer-events-none absolute -bottom-32 -right-24 h-80 w-80 rounded-full bg-zinc-100 blur-3xl" />
         <div className="pointer-events-none absolute right-1/4 top-10 h-40 w-40 rounded-full bg-zinc-100 blur-2xl" />
         <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
-          <div className="max-w-2xl">
-            <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-zinc-900 sm:text-6xl">
-              Ana Paula{" "}
-              <span className="text-zinc-500">RH</span>
-            </h1>
-            <p className="mt-4 text-xl font-semibold text-zinc-800 sm:text-2xl">
-              Vagas & Oportunidades
-            </p>
-            <p className="mt-3 max-w-xl text-base leading-7 text-zinc-600 sm:text-lg">
-              Conectamos talentos às melhores oportunidades. Explore vagas,
-              candidate-se em minutos e dê o próximo passo na sua carreira.
-            </p>
+          <div className="flex items-center justify-between gap-8">
+            <div className="max-w-2xl">
+              <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-zinc-900 sm:text-6xl">
+                Ana Paula{" "}
+                <span className="text-zinc-500">RH</span>
+              </h1>
+              <p className="mt-4 text-xl font-semibold text-zinc-800 sm:text-2xl">
+                Vagas & Oportunidades
+              </p>
+              <p className="mt-3 max-w-xl text-base leading-7 text-zinc-600 sm:text-lg">
+                Conectamos talentos às melhores oportunidades. Explore vagas,
+                candidate-se em minutos e dê o próximo passo na sua carreira.
+              </p>
+            </div>
+            <Image
+              src="/anapaularh.jpg"
+              alt="Ana Paula RH"
+              width={560}
+              height={560}
+              quality={100}
+              className="hidden shrink-0 rounded-2xl object-cover shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl sm:block sm:h-82 sm:w-122 py-5" 
+              priority
+            />
           </div>
 
           <form
             action="/vagas"
             method="get"
-            className="mt-10 flex max-w-2xl overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl ring-1 ring-black/5"
+            className="mt-10 flex max-w-lg overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl ring-1 ring-black/5"
           >
             <input
               type="search"
